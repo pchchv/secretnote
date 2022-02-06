@@ -1,4 +1,4 @@
-package main
+package cipher
 
 import (
 	"crypto/aes"
@@ -8,23 +8,9 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
-	"os"
 )
 
-func main() {
-	var message string
-	key := getKey()
-	hashedKey := getHash(key)
-	fmt.Print("Enter the message: ")
-	if _, err := fmt.Fscan(os.Stdin, &message); err != nil {
-		panic(err.Error())
-	}
-	fmt.Printf("%s\n", encrypt(message, key))
-	fmt.Printf("Your secret key: %s\n", key)
-	fmt.Print(checkKey(key, hashedKey))
-}
-
-func getKey() (key string) {
+func GetKey() (key string) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
 		panic(err.Error())
@@ -33,14 +19,14 @@ func getKey() (key string) {
 	return key
 }
 
-func getHash(key string) (hashedKey string) {
+func GetHash(key string) (hashedKey string) {
 	bytes := sha256.Sum256([]byte(key))
 	hashedKey = fmt.Sprintf("%x", bytes)
 	return hashedKey
 }
 
-func checkKey(key string, hashedKey string) bool {
-	hash := getHash(key)
+func CheckKey(key string, hashedKey string) bool {
+	hash := GetHash(key)
 	if hash == hashedKey {
 		return true
 	} else {
@@ -48,7 +34,7 @@ func checkKey(key string, hashedKey string) bool {
 	}
 }
 
-func encrypt(text string, keyString string) (encryptedText string) {
+func Encrypt(text string, keyString string) (encryptedText string) {
 	key, err := hex.DecodeString(keyString)
 	plaintext := []byte(text)
 	if err != nil {
