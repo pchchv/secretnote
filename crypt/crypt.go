@@ -1,4 +1,4 @@
-package cipher
+package crypt
 
 import (
 	"crypto/aes"
@@ -35,19 +35,8 @@ func CheckKey(key string, hashedKey string) bool {
 }
 
 func Encrypt(text string, keyString string) (encryptedText string) {
-	key, err := hex.DecodeString(keyString)
 	plaintext := []byte(text)
-	if err != nil {
-		panic(err.Error())
-	}
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		panic(err.Error())
-	}
-	aesGCM, err := cipher.NewGCM(block)
-	if err != nil {
-		panic(err.Error())
-	}
+	aesGCM := cryptHelper(keyString)
 	nonce := make([]byte, aesGCM.NonceSize())
 	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
 		panic(err.Error())
@@ -57,12 +46,24 @@ func Encrypt(text string, keyString string) (encryptedText string) {
 	return encryptedText
 }
 
-func Decript(encryptedText string, keyString string) (decryptedText string) {
-	key, err := hex.DecodeString(keyString)
+func Decrypt(encryptedText string, keyString string) (decryptedText string) {
+	enc, err := hex.DecodeString(encryptedText)
 	if err != nil {
 		panic(err.Error())
 	}
-	enc, err := hex.DecodeString(encryptedText)
+	aesGCM := cryptHelper(keyString)
+	nonceSize := aesGCM.NonceSize()
+	nonce, cipherText := enc[:nonceSize], enc[nonceSize:]
+	plaintext, err := aesGCM.Open(nil, nonce, cipherText, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	decryptedText = fmt.Sprintf("%s", plaintext)
+	return decryptedText
+}
+
+func cryptHelper(keyString string) cipher.AEAD {
+	key, err := hex.DecodeString(keyString)
 	if err != nil {
 		panic(err.Error())
 	}
@@ -74,12 +75,5 @@ func Decript(encryptedText string, keyString string) (decryptedText string) {
 	if err != nil {
 		panic(err.Error())
 	}
-	nonceSize := aesGCM.NonceSize()
-	nonce, cipherText := enc[:nonceSize], enc[nonceSize:]
-	plaintext, err := aesGCM.Open(nil, nonce, cipherText, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-	decryptedText = fmt.Sprintf("%s", plaintext)
-	return decryptedText
+	return aesGCM
 }

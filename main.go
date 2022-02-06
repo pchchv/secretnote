@@ -1,25 +1,25 @@
 package main
 
 import (
-	"./cipher"
 	"bufio"
 	"fmt"
 	"os"
+	"secretnote/crypt"
 )
 
 func main() {
-	key := cipher.GetKey()
-	hashedKey := cipher.GetHash(key)
+	key := crypt.GetKey()
+	hashedKey := crypt.GetHash(key)
 	fmt.Print("Enter the message: ")
 	reader := bufio.NewReader(os.Stdin)
 	message, err := reader.ReadString('\n')
 	if err != nil {
 		panic(err.Error())
 	}
-	encryptedText := cipher.Encrypt(message, key)
+	encryptedText := crypt.Encrypt(message, key)
 	fmt.Printf("Your secret key: %s\n", key)
-	if cipher.CheckKey(key, hashedKey) {
-		fmt.Print(cipher.Decript(encryptedText, key))
+	if crypt.CheckKey(key, hashedKey) {
+		fmt.Print(crypt.Decrypt(encryptedText, key))
 	} else {
 		panic("Invalid Key")
 	}
