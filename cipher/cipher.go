@@ -53,5 +53,33 @@ func Encrypt(text string, keyString string) (encryptedText string) {
 		panic(err.Error())
 	}
 	cipherText := aesGCM.Seal(nonce, nonce, plaintext, nil)
-	return fmt.Sprintf("%x", cipherText)
+	encryptedText = fmt.Sprintf("%x", cipherText)
+	return encryptedText
+}
+
+func Decript(encryptedText string, keyString string) (decryptedText string) {
+	key, err := hex.DecodeString(keyString)
+	if err != nil {
+		panic(err.Error())
+	}
+	enc, err := hex.DecodeString(encryptedText)
+	if err != nil {
+		panic(err.Error())
+	}
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err.Error())
+	}
+	aesGCM, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonceSize := aesGCM.NonceSize()
+	nonce, cipherText := enc[:nonceSize], enc[nonceSize:]
+	plaintext, err := aesGCM.Open(nil, nonce, cipherText, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	decryptedText = fmt.Sprintf("%s", plaintext)
+	return decryptedText
 }

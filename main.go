@@ -2,19 +2,25 @@ package main
 
 import (
 	"./cipher"
+	"bufio"
 	"fmt"
 	"os"
 )
 
 func main() {
-	var message string
 	key := cipher.GetKey()
 	hashedKey := cipher.GetHash(key)
 	fmt.Print("Enter the message: ")
-	if _, err := fmt.Fscan(os.Stdin, &message); err != nil {
+	reader := bufio.NewReader(os.Stdin)
+	message, err := reader.ReadString('\n')
+	if err != nil {
 		panic(err.Error())
 	}
-	fmt.Printf("%s\n", cipher.Encrypt(message, key))
+	encryptedText := cipher.Encrypt(message, key)
 	fmt.Printf("Your secret key: %s\n", key)
-	fmt.Print(cipher.CheckKey(key, hashedKey))
+	if cipher.CheckKey(key, hashedKey) {
+		fmt.Print(cipher.Decript(encryptedText, key))
+	} else {
+		panic("Invalid Key")
+	}
 }
