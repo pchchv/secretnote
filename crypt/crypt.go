@@ -10,6 +10,11 @@ import (
 	"io"
 )
 
+type Note struct {
+	HashedKey string `json:"key"`
+	Text      string `json:"text"`
+}
+
 func GetKey() (key string) {
 	bytes := make([]byte, 32)
 	if _, err := rand.Read(bytes); err != nil {
@@ -46,20 +51,24 @@ func Encrypt(text string, keyString string) (encryptedText string) {
 	return encryptedText
 }
 
-func Decrypt(encryptedText string, keyString string) (decryptedText string) {
-	enc, err := hex.DecodeString(encryptedText)
-	if err != nil {
-		panic(err.Error())
+func Decrypt(keyString string, note Note) (decryptedText string) {
+	if CheckKey(keyString, note.HashedKey) {
+		enc, err := hex.DecodeString(note.Text)
+		if err != nil {
+			panic(err.Error())
+		}
+		aesGCM := cryptHelper(keyString)
+		nonceSize := aesGCM.NonceSize()
+		nonce, cipherText := enc[:nonceSize], enc[nonceSize:]
+		plaintext, err := aesGCM.Open(nil, nonce, cipherText, nil)
+		if err != nil {
+			panic(err.Error())
+		}
+		decryptedText = fmt.Sprintf("%s", plaintext)
+		return decryptedText
+	} else {
+		panic("Incorrect key")
 	}
-	aesGCM := cryptHelper(keyString)
-	nonceSize := aesGCM.NonceSize()
-	nonce, cipherText := enc[:nonceSize], enc[nonceSize:]
-	plaintext, err := aesGCM.Open(nil, nonce, cipherText, nil)
-	if err != nil {
-		panic(err.Error())
-	}
-	decryptedText = fmt.Sprintf("%s", plaintext)
-	return decryptedText
 }
 
 func cryptHelper(keyString string) cipher.AEAD {

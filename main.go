@@ -8,19 +8,16 @@ import (
 )
 
 func main() {
-	key := crypt.GetKey()
-	hashedKey := crypt.GetHash(key)
+	var note crypt.Note
 	fmt.Print("Enter the message: ")
-	reader := bufio.NewReader(os.Stdin)
+	var reader = bufio.NewReader(os.Stdin)
 	message, err := reader.ReadString('\n')
 	if err != nil {
 		panic(err.Error())
 	}
-	encryptedText := crypt.Encrypt(message, key)
+	key := crypt.GetKey()
+	note.Text = crypt.Encrypt(message, key)
+	note.HashedKey = crypt.GetHash(key)
 	fmt.Printf("Your secret key: %s\n", key)
-	if crypt.CheckKey(key, hashedKey) {
-		fmt.Print(crypt.Decrypt(encryptedText, key))
-	} else {
-		panic("Invalid Key")
-	}
+	fmt.Print(crypt.Decrypt(key, note))
 }
